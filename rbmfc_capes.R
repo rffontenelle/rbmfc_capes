@@ -90,7 +90,8 @@ lapply(data_sources$name, function(nm) {
   }
 })
 
-data <- lapply(data_sources$filename, fread, sep = ";", encoding = "Latin-1")
+data <- file.path("data_raw", data_sources$filename) |> 
+  lapply(fread, sep = ";", encoding = "Latin-1")
 names(data) <- data_sources$name
 data$programs <- rbindlist(data[as.character(2017:2020)]) |> 
   setkey(AN_BASE, CD_PROGRAMA_IES)
