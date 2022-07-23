@@ -21,6 +21,7 @@
 # Load libraries ----
 
 library(data.table)
+library(Matrix)
 
 
 # Ancillary functions ----
@@ -210,3 +211,21 @@ table_programs[, c(journal_cols) :=  journals[
 ]]
 
 rm(journal_cols)
+
+
+# Calculate similarity ----
+
+similarity_by_areas <- sparseMatrix(
+  i = journals[.(table_areas$ID_VALOR_LISTA), id],
+  j = areas[.(table_areas$CD_AREA_AVALIACAO), id],
+  x = table_areas$N
+) |>
+  cosine_similarity()
+
+similarity_by_programs <- sparseMatrix(
+  i = journals[.(table_programs$ID_VALOR_LISTA), id],
+  j = programs[.(table_programs$CD_PROGRAMA_IES), id],
+  x = table_programs$N
+) |>
+  cosine_similarity()
+  
