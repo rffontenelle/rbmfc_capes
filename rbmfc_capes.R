@@ -46,10 +46,11 @@ cosine_similarity <- function(m) {
 get_issn_title <- function(x) {
   pattern = "\\((\\d{4}-\\d{3}[\\dXx])\\)\\s+(.*)$"
   ISSN = sub(pattern, "\\1", x, perl = TRUE)
-  Journal = sub(pattern, "\\2", x, perl = TRUE)
+  # no need for uppercase, except for consistency with original data
+  TITLE = sub(pattern, "\\2", x, perl = TRUE)
   list(
     ISSN = ISSN[order(ISSN)],
-    Journal = Journal[order(ISSN)]
+    TITLE = TITLE[order(ISSN)]
   )
 }
 
@@ -135,12 +136,12 @@ journals <- data$output[
   with(get_issn_title(unique(DS_ISSN)), 
        # A couple tens of journals were included both in their
        # printed and their electronic form
-       .(ISSN = ISSN, Journal = Journal, i = seq_along(ISSN))), 
+       .(ISSN = ISSN, TITLE = TITLE, i = seq_along(ISSN))), 
   keyby = ID_VALOR_LISTA
 ] |> 
-  dcast(ID_VALOR_LISTA ~ i, value.var = c("ISSN", "Journal"))
+  dcast(ID_VALOR_LISTA ~ i, value.var = c("ISSN", "TITLE"))
 setcolorder(journals, 
-            c("ID_VALOR_LISTA", "ISSN_1", "Journal_1", "ISSN_2", "Journal_2"))
+            c("ID_VALOR_LISTA", "ISSN_1", "TITLE_1", "ISSN_2", "TITLE_2"))
 journals[, id := .I]
 
 # Data about those postgraduate programs at each year
