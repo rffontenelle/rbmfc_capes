@@ -178,9 +178,10 @@ areas <- programs_years[
 rm(data)
 
 
-# Aggregate data ---
+# Aggregate data ----
 
 journal_cols <- c("ISSN_1", "TITLE_1", "ISSN_2", "TITLE_2")
+if (!dir.exists("output")) dir.create("output")
 
 # Aggregate over evaluation areas
 table_areas <- programs_years[
@@ -195,6 +196,10 @@ table_areas[, c(journal_cols) :=  journals[
   .SD, 
   .SDcols = c(journal_cols)
 ]]
+if (compare(as.character(packageVersion("data.table")), "1.4.3") > -1) {
+  warning("Consider fwrite(..., encoding = \"UTF-8\")")
+}
+fwrite(table_areas, file.path("output", "1_journals_versus_areas.csv"))
 
 # Aggregate over individual postgraduate programs
 table_programs <- programs_years[
@@ -209,6 +214,7 @@ table_programs[, c(journal_cols) :=  journals[
   .SD, 
   .SDcols = c(journal_cols)
 ]]
+fwrite(table_programs, file.path("output", "2_journals_versus_programs.csv"))
 
 rm(journal_cols)
 
