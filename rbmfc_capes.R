@@ -60,10 +60,10 @@ data_sources <- data.table(
   ),
   filename = rep(NA_character_, 5),
   md5sum = c(
-    "423d5ee9ee673e415f54fe58aa3ae091",
-    "04ecc558635bb0266dab44fda8aa9faa",
-    "566794ded7de6ff5eec8bb9b9f34d618",
-    "719e1d9365712706acedff898eecaf65", 
+    "dab118c663c6321ec34e5ad3cc315ab1",
+    "378ee6b2ea5a20ca7bc59a634fe1585e",
+    "bcb6ac9e91ffa95e371b406c433f5dfe",
+    "214fc6c5e5585fb709f898f3cd43b1c8", 
     "eea64bc0a71d31ce3d4c44979de37505"
   ),
   # You're welcome, future me
@@ -85,7 +85,8 @@ if (!dir.exists("data_raw")) dir.create("data_raw")
 lapply(data_sources$name, function(nm) {
   path <- file.path("data_raw", data_sources[nm, filename])
   if (!isTRUE(data_sources[nm, md5sum] == tools::md5sum(path))) {
-    download.file(data_sources[nm, url], path)
+    # Downloading in binary mode to avoid messing with line endings
+    download.file(data_sources[nm, url], path, mode = "wb")
   }
 })
 
