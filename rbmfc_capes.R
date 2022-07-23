@@ -113,6 +113,8 @@ data[as.character(2017:2020)] <- NULL
 setnames(data$output, old = "AN_BASE_PRODUCAO", new = "AN_BASE")
 setkey(data$output, AN_BASE, CD_PROGRAMA_IES)
 
+
+# Rearrange data ----
 # Which postgraduate programs published which articles 
 # in which journals in which years
 output <- data$output[
@@ -170,3 +172,5 @@ areas <- programs_years[
   # There's no CD_AREA_AVALIACAO 43
   , id := .I
 ]
+
+rm(data)
