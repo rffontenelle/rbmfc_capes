@@ -175,3 +175,38 @@ areas <- programs_years[
 ]
 
 rm(data)
+
+
+# Aggregate data ---
+
+journal_cols <- c("ISSN_1", "TITLE_1", "ISSN_2", "TITLE_2")
+
+# Aggregate over evaluation areas
+table_areas <- programs_years[
+  output, , on = .(AN_BASE, CD_PROGRAMA_IES)
+][
+  , .N, keyby = .(ID_VALOR_LISTA, CD_AREA_AVALIACAO, NM_AREA_AVALIACAO)
+]
+table_areas[, prop_within_journals := N / sum(N), by = ID_VALOR_LISTA]
+table_areas[, prop_within_areas := N / sum(N), by = CD_AREA_AVALIACAO]
+table_areas[, c(journal_cols) :=  journals[
+  .(table_areas$ID_VALOR_LISTA), 
+  .SD, 
+  .SDcols = c(journal_cols)
+]]
+
+# Aggregate over individual postgraduate programs
+table_programs <- programs_years[
+  output, , on = .(AN_BASE, CD_PROGRAMA_IES)
+][
+  , .N, keyby = .(ID_VALOR_LISTA, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
+]
+table_programs[, prop_within_journals := N / sum(N), by = ID_VALOR_LISTA]
+table_programs[, prop_within_programs := N / sum(N), by = CD_PROGRAMA_IES]
+table_programs[, c(journal_cols) :=  journals[
+  .(table_programs$ID_VALOR_LISTA), 
+  .SD, 
+  .SDcols = c(journal_cols)
+]]
+
+rm(journal_cols)
