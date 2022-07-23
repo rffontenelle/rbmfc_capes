@@ -25,6 +25,20 @@ library(data.table)
 
 # Ancillary functions ----
 
+# If you want to see how similar certain "objects" are in terms of 
+# certain "features", the objects should be matrix rows, and the 
+# features should be matrix columns.
+#
+# See the Wikipedia for a conceptual introduction:
+# https://en.wikipedia.org/wiki/Cosine_similarity
+#
+# The implementation is derived from this code:
+# https://stats.stackexchange.com/a/367216/59578
+#
+cosine_similarity <- function(m) {
+  tcrossprod(m / sqrt(rowSums(m * m)))
+}
+
 # This function is intended to use with unique(DS_ISSN).
 # It returns a list with the ISSN and the journal title,
 # sorted in increasing order or ISSN.
