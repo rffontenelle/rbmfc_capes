@@ -260,15 +260,7 @@ rm(journal_cols)
 
 # Calculate similarity ----
 
-# This matrix alone is almost a gigabyte large!
-similarity_by_areas <- sparseMatrix(
-  i = journals[.(table_areas$ID_VALOR_LISTA), id],
-  j = areas[.(table_areas$CD_AREA_AVALIACAO), id],
-  x = table_areas$N
-) |>
-  cosine_similarity()
-
-similarity_by_programs <- sparseMatrix(
+similarity <- sparseMatrix(
   i = journals[.(table_programs$ID_VALOR_LISTA), id],
   j = programs[.(table_programs$CD_PROGRAMA_IES), id],
   x = table_programs$N
