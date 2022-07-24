@@ -55,6 +55,45 @@ get_issn_title <- function(x) {
   )
 }
 
+# This function is intended to use with the matrices from "Calculate 
+# similarity". These are "compact sparse column" representations, as
+# explained in section 3.1 of the vignette "Introduction to the Matrix 
+# Package".
+#
+# My humble 8GB RAM blows up when I try converting similarity_by_areas
+# to a data.table, no matter what trick I try. Let's give up and write
+# directly to the disk, one column at a time.
+#
+write_similarity_table <- function(m, filename, progress = interactive()) {
+  stopifnot("dsCMatrix" %in% class(m))
+  
+  # The plus-ones are because {Matrix} counts from 0 as in C, 
+  # not from 1 as in R
+  j_start <- head(m@p, -1) + 1
+  j_end   <- tail(m@p, -1)
+  
+  if (progress) pb <- txtProgressBar(0, m@Dim[2], style = 3)
+  
+  for (i in seq_len(m@Dim[2])) {
+    dt <- data.table(
+      i = m@i[j_start[i]:j_end[i]] + 1,
+      j = i,
+      similarity = m@x[j_start[i]:j_end[i]]
+    ) |> 
+      subset(i != j)
+    if (nrow(dt) > 0) {
+      dt <- rbind(dt, data.table(i = dt$j, j = dt$i, similarity = dt$similarity))
+    }
+    dt[, issn_a := journals$ISSN_1[i]]
+    dt[, issn_b := journals$ISSN_1[j]]
+    dt[, title_a := journals$TITLE_1[i]]
+    dt[, title_b := journals$TITLE_1[j]]
+    fwrite(dt[, -c("i", "j")], filename, append = i > 1)
+    
+    if (progress) setTxtProgressBar(pb, 1 + getTxtProgressBar(pb)) 
+  }
+}
+
 
 # Read data ----
 
@@ -196,7 +235,7 @@ table_areas[, c(journal_cols) :=  journals[
   .SD, 
   .SDcols = c(journal_cols)
 ]]
-if (compare(as.character(packageVersion("data.table")), "1.4.3") > -1) {
+if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
   warning("Consider fwrite(..., encoding = \"UTF-8\")")
 }
 fwrite(table_areas, file.path("output", "1_journals_versus_areas.csv"))
@@ -221,6 +260,7 @@ rm(journal_cols)
 
 # Calculate similarity ----
 
+# This matrix alone is almost a gigabyte large!
 similarity_by_areas <- sparseMatrix(
   i = journals[.(table_areas$ID_VALOR_LISTA), id],
   j = areas[.(table_areas$CD_AREA_AVALIACAO), id],
@@ -234,4 +274,3 @@ similarity_by_programs <- sparseMatrix(
   x = table_programs$N
 ) |>
   cosine_similarity()
-  
