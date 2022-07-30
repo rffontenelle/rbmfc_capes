@@ -154,8 +154,20 @@ data[as.character(2017:2020)] <- NULL
 setnames(data$output, old = "AN_BASE_PRODUCAO", new = "AN_BASE")
 setkey(data$output, AN_BASE, CD_PROGRAMA_IES)
 
+# Consolidate instances of the same journal ----
+
+# The same journal can have more than one ISSN, eg print and online.
+# Both ISSN should occur with the same value of ID_VALOR_LISTA, but 
+# most of the time that's not what's happening. Let's fix this for
+# the focal journals
+data$output[grepl("^\\((2179-7994|1809-5909)\\)", DS_ISSN), 
+            ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
+data$output[grepl("^\\((1809-8363|1516-7704)\\)", DS_ISSN), 
+            ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
+
 
 # Rearrange data ----
+
 # Which postgraduate programs published which articles 
 # in which journals in which years
 output <- data$output[
