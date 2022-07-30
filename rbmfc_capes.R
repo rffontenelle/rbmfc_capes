@@ -220,7 +220,6 @@ rm(data)
 # Aggregate data ----
 
 journal_cols <- c("ISSN_1", "TITLE_1", "ISSN_2", "TITLE_2")
-if (!dir.exists("output")) dir.create("output")
 
 # Aggregate over evaluation areas
 table_areas <- programs_years[
@@ -235,10 +234,6 @@ table_areas[, c(journal_cols) :=  journals[
   .SD, 
   .SDcols = c(journal_cols)
 ]]
-if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
-  warning("Consider fwrite(..., encoding = \"UTF-8\")")
-}
-fwrite(table_areas, file.path("output", "1_journals_versus_areas.csv"))
 
 # Aggregate over individual postgraduate programs
 table_programs <- programs_years[
@@ -253,7 +248,6 @@ table_programs[, c(journal_cols) :=  journals[
   .SD, 
   .SDcols = c(journal_cols)
 ]]
-fwrite(table_programs, file.path("output", "2_journals_versus_programs.csv"))
 
 rm(journal_cols)
 
@@ -266,3 +260,33 @@ similarity <- sparseMatrix(
   x = table_programs$N
 ) |>
   cosine_similarity()
+
+# Export aggregated data and similarity ----
+
+if (!dir.exists("output")) dir.create("output")
+if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
+  warning("Consider fwrite(..., encoding = \"UTF-8\")")
+}
+
+for (ivl in journals$ID_VALOR_LISTA[1:20]) {
+  
+  issn <- journals[.(ivl), ISSN_1]
+  stopifnot(length(issn) == 1)
+  
+  table_areas[.(ID_VALOR_LISTA = ivl)] |> 
+    fwrite(file.path("output", sprintf("%s_evaluation_areas.csv", issn)))
+  
+  table_programs[.(ID_VALOR_LISTA = ivl)] |> 
+    fwrite(file.path("output", sprintf("%s_postgraduate_programs.csv", issn)))
+  
+  data.table(
+    similarity = similarity[, journals[.(ivl), id]],
+    # Row (or column) order in the similarity matrix is the same as 
+    # the row order in the journals data.table
+    ISSN = journals$ISSN_1,
+    Title = journals$TITLE_1
+  ) |> 
+    # Let's make it easier for readers
+    subset(similarity != 0) |> 
+    fwrite(file.path("output", sprintf("%s_similarity.csv", issn)))
+}
