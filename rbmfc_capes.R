@@ -185,8 +185,8 @@ table_areas <- programs_years[
 ][
   , .N, keyby = .(ID_VALOR_LISTA, CD_AREA_AVALIACAO, NM_AREA_AVALIACAO)
 ]
-table_areas[, prop_within_journals := N / sum(N), by = ID_VALOR_LISTA]
-table_areas[, prop_within_areas := N / sum(N), by = CD_AREA_AVALIACAO]
+table_areas[, prop_within_journal := N / sum(N), by = ID_VALOR_LISTA]
+table_areas[, prop_within_area := N / sum(N), by = CD_AREA_AVALIACAO]
 table_areas[, c(journal_cols) :=  journals[
   .(table_areas$ID_VALOR_LISTA), 
   .SD, 
@@ -199,8 +199,8 @@ table_programs <- programs_years[
 ][
   , .N, keyby = .(ID_VALOR_LISTA, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
 ]
-table_programs[, prop_within_journals := N / sum(N), by = ID_VALOR_LISTA]
-table_programs[, prop_within_programs := N / sum(N), by = CD_PROGRAMA_IES]
+table_programs[, prop_within_journal := N / sum(N), by = ID_VALOR_LISTA]
+table_programs[, prop_within_program := N / sum(N), by = CD_PROGRAMA_IES]
 table_programs[, c(journal_cols) :=  journals[
   .(table_programs$ID_VALOR_LISTA), 
   .SD, 
@@ -228,15 +228,15 @@ areas_cols <- c(
   "CD_AREA_AVALIACAO",
   "NM_AREA_AVALIACAO",
   "N",
-  "prop_within_journals",
-  "prop_within_areas"
+  "prop_within_journal",
+  "prop_within_area"
 )
 programs_cols <- c(
   "CD_PROGRAMA_IES", 
   "NM_PROGRAMA_IES", 
   "N", 
-  "prop_within_journals", 
-  "prop_within_programs"
+  "prop_within_journal", 
+  "prop_within_program"
 )
 for (ivl in focal_journals) {
   issn <- journals[.(ivl), ISSN_1]
