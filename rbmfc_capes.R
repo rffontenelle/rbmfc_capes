@@ -21,24 +21,9 @@
 # Load libraries ----
 
 library(data.table)
-library(Matrix)
 
 
 # Ancillary functions ----
-
-# If you want to see how similar certain "objects" are in terms of 
-# certain "features", the objects should be matrix rows, and the 
-# features should be matrix columns.
-#
-# See the Wikipedia for a conceptual introduction:
-# https://en.wikipedia.org/wiki/Cosine_similarity
-#
-# The implementation is derived from this code:
-# https://stats.stackexchange.com/a/367216/59578
-#
-cosine_similarity <- function(m) {
-  tcrossprod(m / sqrt(rowSums(m * m)))
-}
 
 # This function is intended to use with unique(DS_ISSN).
 # It returns a list with the ISSN and the journal title,
@@ -53,45 +38,6 @@ get_issn_title <- function(x) {
     ISSN = ISSN[order(ISSN)],
     TITLE = TITLE[order(ISSN)]
   )
-}
-
-# This function is intended to use with the matrices from "Calculate 
-# similarity". These are "compact sparse column" representations, as
-# explained in section 3.1 of the vignette "Introduction to the Matrix 
-# Package".
-#
-# My humble 8GB RAM blows up when I try converting similarity_by_areas
-# to a data.table, no matter what trick I try. Let's give up and write
-# directly to the disk, one column at a time.
-#
-write_similarity_table <- function(m, filename, progress = interactive()) {
-  stopifnot("dsCMatrix" %in% class(m))
-  
-  # The plus-ones are because {Matrix} counts from 0 as in C, 
-  # not from 1 as in R
-  j_start <- head(m@p, -1) + 1
-  j_end   <- tail(m@p, -1)
-  
-  if (progress) pb <- txtProgressBar(0, m@Dim[2], style = 3)
-  
-  for (i in seq_len(m@Dim[2])) {
-    dt <- data.table(
-      i = m@i[j_start[i]:j_end[i]] + 1,
-      j = i,
-      similarity = m@x[j_start[i]:j_end[i]]
-    ) |> 
-      subset(i != j)
-    if (nrow(dt) > 0) {
-      dt <- rbind(dt, data.table(i = dt$j, j = dt$i, similarity = dt$similarity))
-    }
-    dt[, issn_a := journals$ISSN_1[i]]
-    dt[, issn_b := journals$ISSN_1[j]]
-    dt[, title_a := journals$TITLE_1[i]]
-    dt[, title_b := journals$TITLE_1[j]]
-    fwrite(dt[, -c("i", "j")], filename, append = i > 1)
-    
-    if (progress) setTxtProgressBar(pb, 1 + getTxtProgressBar(pb)) 
-  }
 }
 
 
@@ -264,41 +210,18 @@ table_programs[, c(journal_cols) :=  journals[
 rm(journal_cols)
 
 
-# Calculate similarity ----
+# Write aggregated data ----
 
-similarity <- sparseMatrix(
-  i = journals[.(table_programs$ID_VALOR_LISTA), id],
-  j = programs[.(table_programs$CD_PROGRAMA_IES), id],
-  x = table_programs$N
-) |>
-  cosine_similarity()
-
-# Export aggregated data and similarity ----
-
-if (!dir.exists("output")) dir.create("output")
+if (!dir.exists("data")) dir.create("data")
 if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
   warning("Consider fwrite(..., encoding = \"UTF-8\")")
 }
 
 for (ivl in journals$ID_VALOR_LISTA[1:20]) {
-  
   issn <- journals[.(ivl), ISSN_1]
   stopifnot(length(issn) == 1)
-  
   table_areas[.(ID_VALOR_LISTA = ivl)] |> 
-    fwrite(file.path("output", sprintf("%s_evaluation_areas.csv", issn)))
-  
+    fwrite(file.path("data", sprintf("%s_evaluation_areas.csv", issn)))
   table_programs[.(ID_VALOR_LISTA = ivl)] |> 
-    fwrite(file.path("output", sprintf("%s_postgraduate_programs.csv", issn)))
-  
-  data.table(
-    similarity = similarity[, journals[.(ivl), id]],
-    # Row (or column) order in the similarity matrix is the same as 
-    # the row order in the journals data.table
-    ISSN = journals$ISSN_1,
-    Title = journals$TITLE_1
-  ) |> 
-    # Let's make it easier for readers
-    subset(similarity != 0) |> 
-    fwrite(file.path("output", sprintf("%s_similarity.csv", issn)))
+    fwrite(file.path("data", sprintf("%s_postgraduate_programs.csv", issn)))
 }
