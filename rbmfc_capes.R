@@ -217,7 +217,14 @@ if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
   warning("Consider fwrite(..., encoding = \"UTF-8\")")
 }
 
-for (ivl in journals$ID_VALOR_LISTA[1:20]) {
+# 1. Revista Brasileira de Medicina de Família e Comunidade
+# 2. Revista de APS
+focal_journals <- journals[
+  ISSN_1 %in% c("2179-7994", "1809-5909", "1809-8363", "1516-7704"), 
+  unique(ID_VALOR_LISTA)
+]
+
+for (ivl in focal_journals) {
   issn <- journals[.(ivl), ISSN_1]
   stopifnot(length(issn) == 1)
   table_areas[.(ID_VALOR_LISTA = ivl)] |> 
