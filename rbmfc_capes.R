@@ -145,7 +145,7 @@ journals[, id := .I]
 # Data about those postgraduate programs at each year
 programs_years <- data$programs[
   unique(output[, .(AN_BASE, CD_PROGRAMA_IES)]),
-  .(AN_BASE, CD_PROGRAMA_IES, NM_PROGRAMA_IES, 
+  .(AN_BASE, SG_ENTIDADE_ENSINO, CD_PROGRAMA_IES, NM_PROGRAMA_IES, 
     CD_AREA_AVALIACAO, NM_AREA_AVALIACAO),
   key = .(AN_BASE, CD_PROGRAMA_IES)
 ][
@@ -155,7 +155,7 @@ stopifnot(anyDuplicated(programs_years[, .(AN_BASE, CD_PROGRAMA_IES)]) == 0)
 
 # Timeless data about postgraduate programs
 programs <- programs_years[
-  , .(CD_PROGRAMA_IES, NM_PROGRAMA_IES)
+  , .(SG_ENTIDADE_ENSINO, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
 ][
   , last(.SD), keyby = CD_PROGRAMA_IES
 ][
@@ -197,7 +197,9 @@ table_areas[, c(journal_cols) :=  journals[
 table_programs <- programs_years[
   output, , on = .(AN_BASE, CD_PROGRAMA_IES)
 ][
-  , .N, keyby = .(ID_VALOR_LISTA, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
+  , 
+  .N, 
+  keyby = .(ID_VALOR_LISTA, SG_ENTIDADE_ENSINO, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
 ]
 table_programs[, prop_within_journal := N / sum(N), by = ID_VALOR_LISTA]
 table_programs[, prop_within_program := N / sum(N), by = CD_PROGRAMA_IES]
@@ -232,6 +234,7 @@ areas_cols <- c(
   "prop_within_area"
 )
 programs_cols <- c(
+  "SG_ENTIDADE_ENSINO",
   "CD_PROGRAMA_IES", 
   "NM_PROGRAMA_IES", 
   "N", 
