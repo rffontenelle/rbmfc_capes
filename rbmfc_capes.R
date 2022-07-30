@@ -224,11 +224,27 @@ focal_journals <- journals[
   unique(ID_VALOR_LISTA)
 ]
 
+areas_cols <- c(
+  "CD_AREA_AVALIACAO",
+  "NM_AREA_AVALIACAO",
+  "N",
+  "prop_within_journals",
+  "prop_within_areas"
+)
+programs_cols <- c(
+  "CD_PROGRAMA_IES", 
+  "NM_PROGRAMA_IES", 
+  "N", 
+  "prop_within_journals", 
+  "prop_within_programs"
+)
 for (ivl in focal_journals) {
   issn <- journals[.(ivl), ISSN_1]
   stopifnot(length(issn) == 1)
   table_areas[.(ID_VALOR_LISTA = ivl)] |> 
+    subset(select = areas_cols) |> 
     fwrite(file.path("data", sprintf("%s_evaluation_areas.csv", issn)))
   table_programs[.(ID_VALOR_LISTA = ivl)] |> 
+    subset(select = programs_cols) |>
     fwrite(file.path("data", sprintf("%s_postgraduate_programs.csv", issn)))
 }
