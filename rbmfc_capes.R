@@ -4,6 +4,20 @@
 # under the GNU General Public License v3.0; see LICENSE for more information.
 #
 
+# Pick journals ----
+
+# Change this if you want to adapt the analysis to other journals.
+# For more information, see README.md and the comments in section
+# "Consolidate instances of the same journal"
+
+focal_journals <- list(
+  # Revista Brasileira de Medicina de Família e Comunidade
+  c("2179-7994", "1809-5909"),
+  # Revista de APS
+  c("1809-8363", "1516-7704")
+)
+
+
 # Load libraries ----
 
 library(data.table)
@@ -74,7 +88,7 @@ lapply(data_sources$name, function(nm) {
     # Downloading in binary mode to avoid messing with line endings
     download.file(data_sources[nm, url], path, mode = "wb")
   }
-})
+}) |> invisible()
 
 data <- file.path("data_raw", data_sources$filename) |> 
   lapply(fread, sep = ";", encoding = "Latin-1")
@@ -89,15 +103,19 @@ setkey(data$output, AN_BASE, CD_PROGRAMA_IES)
 
 # The same journal can have more than one ISSN, eg print and online.
 # Both ISSN should occur with the same value of ID_VALOR_LISTA, but 
-# most of the time that's not what's happening. Let's fix this for
-# the focal journals!
+# most of the time that's not what's happening. The following code 
+# has two functions. First, it makes sure the focal journals have the 
+# same value of ID_VALOR_LISTA across multiple ISSN. Second, it 
+# gathers these ID_VALOR_LISTA values for latter use in section
+# "Write aggregated data"
 #
-# Rev Bras Med Fam Comunidade
-data$output[grepl("^\\((2179-7994|1809-5909)\\)", DS_ISSN), 
-            ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
-# Rev APS
-data$output[grepl("^\\((1809-8363|1516-7704)\\)", DS_ISSN), 
-            ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
+focal_journal_ids <- sapply(focal_journals, function(x) {
+  issn_pattern <- sprintf("^\\((%s)\\)", paste0(x, collapse = "|"))
+  which_rows <- grepl(issn_pattern, data$output$DS_ISSN)
+  first_id <- data$output[which_rows, first(ID_VALOR_LISTA)]
+  data$output[which_rows, ID_VALOR_LISTA := first_id]
+  first_id
+})
 
 
 # Rearrange data ----
@@ -213,13 +231,6 @@ if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
   warning("Consider fwrite(..., encoding = \"UTF-8\")")
 }
 
-# 1. Revista Brasileira de Medicina de Família e Comunidade
-# 2. Revista de APS
-focal_journals <- journals[
-  ISSN_1 %in% c("2179-7994", "1809-5909", "1809-8363", "1516-7704"), 
-  unique(ID_VALOR_LISTA)
-]
-
 areas_cols <- c(
   "CD_AREA_AVALIACAO",
   "NM_AREA_AVALIACAO",
@@ -237,7 +248,9 @@ programs_cols <- c(
   "cum_prop_within_journal",
   "prop_within_program"
 )
-for (ivl in focal_journals) {
+
+# focal_journal_ids has some values from ID_VALOR_LISTA
+for (ivl in focal_journal_ids) {
   issn <- journals[.(ivl), ISSN_1]
   stopifnot(length(issn) == 1)
   table_areas[.(ID_VALOR_LISTA = ivl)] |> 

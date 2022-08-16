@@ -27,24 +27,14 @@ Comunidade_ (RBMFC for short), ISSN 2179-7994. The comparison journal is
 _Revista de APS_, ISSN 1809-8363.
 
 If you want to run a similar analysis for another journal(s), take hold 
-of all its ISSNs and edit these lines of code:
+of all the ISSNs and edit these lines of code in `rbmfc_capes.R`, 
+section "Pick journals":
 
 ```{r}
-# Rev Bras Med Fam Comunidade
-data$output[grepl("^\\((2179-7994|1809-5909)\\)", DS_ISSN), 
-            ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
-# Rev APS
-data$output[grepl("^\\((1809-8363|1516-7704)\\)", DS_ISSN), 
-            ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
-```
-
-and 
-
-```{r}
-# 1. Revista Brasileira de Medicina de Família e Comunidade
-# 2. Revista de APS
-focal_journals <- journals[
-  ISSN_1 %in% c("2179-7994", "1809-5909", "1809-8363", "1516-7704"), 
-  unique(ID_VALOR_LISTA)
-]
+focal_journals <- list(
+  # Revista Brasileira de Medicina de Família e Comunidade
+  c("2179-7994", "1809-5909"),
+  # Revista de APS
+  c("1809-8363", "1516-7704")
+)
 ```
