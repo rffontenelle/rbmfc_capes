@@ -189,6 +189,9 @@ table_areas <- programs_years[
   , .N, keyby = .(ID_VALOR_LISTA, CD_AREA_AVALIACAO, NM_AREA_AVALIACAO)
 ]
 table_areas[, prop_within_journal := N / sum(N), by = ID_VALOR_LISTA]
+setorder(table_areas, ID_VALOR_LISTA, -prop_within_journal)
+table_areas[, cum_prop_within_journal := cumsum(prop_within_journal), by = ID_VALOR_LISTA]
+setkey(table_areas, ID_VALOR_LISTA, CD_AREA_AVALIACAO, NM_AREA_AVALIACAO)
 table_areas[, prop_within_area := N / sum(N), by = CD_AREA_AVALIACAO]
 table_areas[, c(journal_cols) :=  journals[
   .(table_areas$ID_VALOR_LISTA), 
@@ -205,6 +208,9 @@ table_programs <- programs_years[
   keyby = .(ID_VALOR_LISTA, SG_ENTIDADE_ENSINO, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
 ]
 table_programs[, prop_within_journal := N / sum(N), by = ID_VALOR_LISTA]
+setorder(table_programs, ID_VALOR_LISTA, -prop_within_journal)
+table_programs[, cum_prop_within_journal := cumsum(prop_within_journal), by = ID_VALOR_LISTA]
+setkey(table_programs, ID_VALOR_LISTA, SG_ENTIDADE_ENSINO, CD_PROGRAMA_IES, NM_PROGRAMA_IES)
 table_programs[, prop_within_program := N / sum(N), by = CD_PROGRAMA_IES]
 table_programs[, c(journal_cols) :=  journals[
   .(table_programs$ID_VALOR_LISTA), 
@@ -234,6 +240,7 @@ areas_cols <- c(
   "NM_AREA_AVALIACAO",
   "N",
   "prop_within_journal",
+  "cum_prop_within_journal",
   "prop_within_area"
 )
 programs_cols <- c(
@@ -242,6 +249,7 @@ programs_cols <- c(
   "NM_PROGRAMA_IES", 
   "N", 
   "prop_within_journal", 
+  "cum_prop_within_journal",
   "prop_within_program"
 )
 for (ivl in focal_journals) {
@@ -249,8 +257,10 @@ for (ivl in focal_journals) {
   stopifnot(length(issn) == 1)
   table_areas[.(ID_VALOR_LISTA = ivl)] |> 
     subset(select = areas_cols) |> 
+    setorder(-N) |> 
     fwrite(file.path("data", sprintf("%s_evaluation_areas.csv", issn)))
   table_programs[.(ID_VALOR_LISTA = ivl)] |> 
     subset(select = programs_cols) |>
+    setorder(-N) |> 
     fwrite(file.path("data", sprintf("%s_postgraduate_programs.csv", issn)))
 }
