@@ -1,21 +1,7 @@
 ### RBMFC in CAPES
 #
-# This code is licensed under the GNU General Public License v3.0.
-#
-# Context:
-#
-# Revista Brasileira de Medicina de Família e Comunidade (RBMFC for short),
-# ISSN 2179-7994, is the national journal on family and community medicine.
-# 
-# Coordenação de Aperfeiçoamento de Pessoal de Nível Superior (CAPES) is the
-# governmental organization responsible for coordinating "strict sense" 
-# postgraduate programs, that is, those which offer masters' and PhD courses.
-#
-# CAPES groups postgraduate programs in "evaluation areas" for the purpose of 
-# evaluating, regulating and funding the postgraduate programs. A major 
-# part of the evaluation consists in assessing the postgraduate programs' 
-# scholarly output. In turn, ranking the journals withing the evaluation areas 
-# is a major part of assessing the scholarly output.
+# See README.md for an overview of what this analytic code does. It is released 
+# under the GNU General Public License v3.0; see LICENSE for more information.
 #
 
 # Load libraries ----
