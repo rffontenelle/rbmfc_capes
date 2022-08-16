@@ -43,37 +43,36 @@ get_issn_title <- function(x) {
 
 # Read data ----
 
-# Data about the postgraduate programs, and the courses they hold, are 
-# provided separately for each year. Data about details of the 
-# programs' output is separated by output type; we are examining only
-# complete articles published in scholarly journals. As I write this,
-# there's only data about 2017-2018, not 2019-2020 yet.
+# Data about the postgraduate programs, are provided separately for 
+# each year. Data about details of the programs' output is separated by
+# output type; we are examining only complete articles published in 
+# scholarly journals.
 #
 data_sources <- data.table(
   name = c("2017", "2018", "2019", "2020", "output"),
   # This can change as data are updated
   url = c(
-    "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/bb5c1258-cba1-4a7d-a8a4-52bd07256059/download/br-capes-colsucup-curso-2017-2021-11-10.csv",
-    "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/9f811690-bce0-4ce3-acda-1870ce4fc87c/download/br-capes-colsucup-curso-2018-2021-11-10.csv",
-    "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/5694418c-20bc-4b55-8154-22b60d8a13c2/download/br-capes-colsucup-curso-2019-2021-11-10.csv",
-    "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/21736daf-9469-43d9-b552-3d58ac37136d/download/br-capes-colsucup-curso-2020-2021-11-10.csv",
+    "https://dadosabertos.capes.gov.br/dataset/903b4215-ea91-4927-8975-d1484891374f/resource/9835dd45-d4e7-4b1f-b550-eb9b049bacac/download/br-capes-colsucup-prog-2017-2021-11-10.csv",
+    "https://dadosabertos.capes.gov.br/dataset/903b4215-ea91-4927-8975-d1484891374f/resource/f21e8124-d246-4ba3-abfb-cb74fc23ccb5/download/br-capes-colsucup-prog-2018-2021-11-10.csv",
+    "https://dadosabertos.capes.gov.br/dataset/903b4215-ea91-4927-8975-d1484891374f/resource/62f615b8-66d1-4f9b-9014-6ec27687e2d1/download/br-capes-colsucup-prog-2019-2021-11-10.csv",
+    "https://dadosabertos.capes.gov.br/dataset/903b4215-ea91-4927-8975-d1484891374f/resource/ee284b2d-0c33-459d-856b-0a2c055d327c/download/br-capes-colsucup-prog-2020-2021-11-10.csv",
     "https://dadosabertos.capes.gov.br/dataset/8498a5f7-de52-4fb9-8c62-b827cb27bcf9/resource/6646b204-8db4-4e41-b59f-f24f87eed6e4/download/br-colsucup-prod-detalhe-bibliografica-2017a2020-2022-06-30-artpe.csv"
   ),
   filename = rep(NA_character_, 5),
   md5sum = c(
-    "dab118c663c6321ec34e5ad3cc315ab1",
-    "378ee6b2ea5a20ca7bc59a634fe1585e",
-    "bcb6ac9e91ffa95e371b406c433f5dfe",
-    "214fc6c5e5585fb709f898f3cd43b1c8", 
+    "4e7c740e2a963636145cc0d14974a7b3",
+    "6423d2626f7b318b68c3f629af0ae47a",
+    "03c73f23319727755176fb789152d6c2",
+    "07b5ae25b31e968e01b3a197b3d6ecae", 
     "a6595704a05a2fb7e39aa6ff3536a4aa"
   ),
   # You're welcome, future me
   webpage = c(
-    rep("https://dadosabertos.capes.gov.br/dataset/2017-a-2020-cursos-da-pos-graduacao-stricto-sensu-no-brasil", 4),
+    rep("https://dadosabertos.capes.gov.br/dataset/2017-a-2020-programas-da-pos-graduacao-stricto-sensu-no-brasil", 4),
     "https://dadosabertos.capes.gov.br/dataset/2017-a-2020-detalhes-da-producao-intelectual-bibliografica-de-programas-de-pos-graduacao"
     ),
   dictionary = c(
-    rep("https://metadados.capes.gov.br/index.php/catalog/231", 4),
+    rep("https://metadados.capes.gov.br/index.php/catalog/230/datafile/F2", 4),
     "https://metadados.capes.gov.br/index.php/catalog/240/datafile/F6"
   ),
   key = "name"
@@ -136,7 +135,9 @@ journals <- data$output[
   ID_VALOR_LISTA %in% output$ID_VALOR_LISTA, 
   with(get_issn_title(unique(DS_ISSN)), 
        # A couple tens of journals were included both in their
-       # printed and their electronic form
+       # printed and their electronic form. Unfortunately, there
+       # are plenty journals with more than one ID_VALOR_LISTA,
+       # and it's not trivial to reunite all of them.
        .(ISSN = ISSN, TITLE = TITLE, i = seq_along(ISSN))), 
   keyby = ID_VALOR_LISTA
 ] |> 
@@ -151,8 +152,6 @@ programs_years <- data$programs[
   .(AN_BASE, SG_ENTIDADE_ENSINO, CD_PROGRAMA_IES, NM_PROGRAMA_IES, 
     CD_AREA_AVALIACAO, NM_AREA_AVALIACAO),
   key = .(AN_BASE, CD_PROGRAMA_IES)
-][
-  , unique(.SD), keyby = .(AN_BASE, CD_PROGRAMA_IES)
 ]
 stopifnot(anyDuplicated(programs_years[, .(AN_BASE, CD_PROGRAMA_IES)]) == 0)
 
@@ -266,4 +265,5 @@ for (ivl in focal_journals) {
 }
 message("When you open the CSV files in a spreasheet application, ",
         "choose the Windows Western character encoding (code page 1252), ",
-        "and the English locale / dots as decimal sepparators.")
+        "and the English locale / dots as decimal sepparators. ", 
+        "Format the proportion columns as percentages." )
