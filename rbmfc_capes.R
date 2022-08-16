@@ -227,9 +227,6 @@ rm(journal_cols)
 # Write aggregated data ----
 
 if (!dir.exists("data")) dir.create("data")
-if (compareVersion("1.4.3", as.character(packageVersion("data.table"))) > -1) {
-  warning("Consider fwrite(..., encoding = \"UTF-8\")")
-}
 
 areas_cols <- c(
   "CD_AREA_AVALIACAO",
