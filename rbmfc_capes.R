@@ -264,3 +264,6 @@ for (ivl in focal_journals) {
     setorder(-N) |> 
     fwrite(file.path("data", sprintf("%s_postgraduate_programs.csv", issn)))
 }
+message("When you open the CSV files in a spreasheet application, ",
+        "choose the Windows Western character encoding (code page 1252), ",
+        "and the English locale / dots as decimal sepparators.")
