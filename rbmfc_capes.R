@@ -57,7 +57,7 @@ data_sources <- data.table(
     "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/9f811690-bce0-4ce3-acda-1870ce4fc87c/download/br-capes-colsucup-curso-2018-2021-11-10.csv",
     "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/5694418c-20bc-4b55-8154-22b60d8a13c2/download/br-capes-colsucup-curso-2019-2021-11-10.csv",
     "https://dadosabertos.capes.gov.br/dataset/bdaf1399-29ae-4920-b74f-513f11dbed68/resource/21736daf-9469-43d9-b552-3d58ac37136d/download/br-capes-colsucup-curso-2020-2021-11-10.csv",
-    "https://dadosabertos.capes.gov.br/dataset/8498a5f7-de52-4fb9-8c62-b827cb27bcf9/resource/1f3b4c87-bd31-41e2-900d-a3d1f2146461/download/br-colsucup-prod-detalhe-bibliografica-2017a2018-2019-07-05-artpe.csv"
+    "https://dadosabertos.capes.gov.br/dataset/8498a5f7-de52-4fb9-8c62-b827cb27bcf9/resource/6646b204-8db4-4e41-b59f-f24f87eed6e4/download/br-colsucup-prod-detalhe-bibliografica-2017a2020-2022-06-30-artpe.csv"
   ),
   filename = rep(NA_character_, 5),
   md5sum = c(
@@ -65,7 +65,7 @@ data_sources <- data.table(
     "378ee6b2ea5a20ca7bc59a634fe1585e",
     "bcb6ac9e91ffa95e371b406c433f5dfe",
     "214fc6c5e5585fb709f898f3cd43b1c8", 
-    "eea64bc0a71d31ce3d4c44979de37505"
+    "a6595704a05a2fb7e39aa6ff3536a4aa"
   ),
   # You're welcome, future me
   webpage = c(
@@ -74,7 +74,7 @@ data_sources <- data.table(
     ),
   dictionary = c(
     rep("https://metadados.capes.gov.br/index.php/catalog/231", 4),
-    "https://metadados.capes.gov.br/index.php/catalog/175/datafile/F6"
+    "https://metadados.capes.gov.br/index.php/catalog/240/datafile/F6"
   ),
   key = "name"
 )
@@ -105,9 +105,12 @@ setkey(data$output, AN_BASE, CD_PROGRAMA_IES)
 # The same journal can have more than one ISSN, eg print and online.
 # Both ISSN should occur with the same value of ID_VALOR_LISTA, but 
 # most of the time that's not what's happening. Let's fix this for
-# the focal journals
+# the focal journals!
+#
+# Rev Bras Med Fam Comunidade
 data$output[grepl("^\\((2179-7994|1809-5909)\\)", DS_ISSN), 
             ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
+# Rev APS
 data$output[grepl("^\\((1809-8363|1516-7704)\\)", DS_ISSN), 
             ID_VALOR_LISTA := first(ID_VALOR_LISTA)]
 
